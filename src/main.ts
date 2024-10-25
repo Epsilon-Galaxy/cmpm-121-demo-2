@@ -19,26 +19,40 @@ app.append(canvas);
 const content = canvas.getContext("2d");
 const mouse = {active: false, x:0, y: 0}
 
+const lines: number[] = [];
+let currentLine;
+
+
 canvas.addEventListener("mousedown", (newLoc) => {
     mouse.active = true;
     mouse.x = newLoc.offsetX;
     mouse.y = newLoc.offsetY;
+
+    currentLine.push({x: mouse.x, y: mouse.y});
+
+    lines.push(currentLine);
+
+
 })
 
 canvas.addEventListener("mouseup", (newLoc) => {
     mouse.active = false;
+    currentLine = [];
 })
 
 canvas.addEventListener("mousemove", (newLoc) => {
     if(mouse.active == true){
-        content?.beginPath();
-        content?.moveTo(mouse.x, mouse.y);
-        content?.lineTo(newLoc.offsetX, newLoc.offsetY);
-        content?.stroke();
         mouse.x = newLoc.offsetX;
         mouse.y = newLoc.offsetY;
+        currentLine.push({ x: mouse.x, y: mouse.y });
+        };
+
     }
-});
+);
+
+canvas.addEventListener("drawing-changed", (newLoc) => {
+
+})
 
 const clear = document.createElement("button");
 clear.innerHTML = "Clear";
