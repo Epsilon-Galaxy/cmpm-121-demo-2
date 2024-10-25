@@ -22,6 +22,7 @@ const content = canvas.getContext("2d");
 const mouse = {active: false, x:0, y: 0}
 
 const lines: Array<Array<{x: number; y: number}>> = [];
+const redoList: Array<Array<{x: number; y: number}>> = [];
 
 
 canvas.addEventListener("mousedown", (newLoc) => {
@@ -66,12 +67,48 @@ canvas.addEventListener("drawing-changed", (newLoc) => {
     }
 })
 
+const undoButton = document.createElement("button");
+undoButton.innerHTML = "Undo";
+app.append(undoButton);
+
+undoButton.addEventListener("click", () => {
+    if(lines.length != 0){
+        const temp = lines.pop();
+        if(temp){
+            redoList.push(temp);
+        }
+
+        canvas.dispatchEvent(evtDrawingChange);
+    }
+
+})
+
+const redoButton = document.createElement("button");
+redoButton.innerHTML = "Redo";
+app.append(redoButton);
+
+redoButton.addEventListener("click", () => {
+    if(redoList.length != 0){
+        const temp = redoList.pop();
+        if(temp){
+            lines.push(temp);
+        }
+        canvas.dispatchEvent(evtDrawingChange);
+    }
+})
+
 const clear = document.createElement("button");
 clear.innerHTML = "Clear";
 app.append(clear);
 
 clear.addEventListener("click", () => {
     content?.clearRect(0,0, canvas.width, canvas.height);
+    for(const line of lines){
+        lines.pop();
+    }
+    for(const line of redoList){
+        redoList.pop();
+    }
 });
 
 
