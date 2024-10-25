@@ -21,8 +21,7 @@ const evtDrawingChange = new Event("drawing-changed");
 const content = canvas.getContext("2d");
 const mouse = {active: false, x:0, y: 0}
 
-let lines;
-let currentLine;
+const lines: Array<Array<{x: number; y: number}>> = [];
 
 
 canvas.addEventListener("mousedown", (newLoc) => {
@@ -30,26 +29,26 @@ canvas.addEventListener("mousedown", (newLoc) => {
     mouse.x = newLoc.offsetX;
     mouse.y = newLoc.offsetY;
 
-    currentLine.push({x: mouse.x, y: mouse.y});
+    
 
-    lines.push(currentLine);
-    dispatchEvent(evtDrawingChange);
+    lines.push([{x: mouse.x, y: mouse.y}]);
 
 
 })
 
 canvas.addEventListener("mouseup", (newLoc) => {
     mouse.active = false;
-    currentLine = [];
 })
 
 canvas.addEventListener("mousemove", (newLoc) => {
     if(mouse.active == true){
+        lines[lines.length - 1].push({x: newLoc.offsetX, y: newLoc.offsetY});
+
+        canvas.dispatchEvent(evtDrawingChange); 
         mouse.x = newLoc.offsetX;
         mouse.y = newLoc.offsetY;
-        currentLine.push({ x: mouse.x, y: mouse.y });
+        
         };
-        dispatchEvent(evtDrawingChange);
     }
 );
 
@@ -58,10 +57,9 @@ canvas.addEventListener("drawing-changed", (newLoc) => {
     for (const line of lines){
         if(line.length > 1){
             content?.beginPath();
-            const {x, y} = line[0];
-            content?.moveTo(x, y);
-            for( const{x, y} of line){
-                content?.lineTo(x, y);
+            content?.moveTo(line[0].x, line[0].y);
+            for(const point of line){
+                content?.lineTo(point.x, point.y);
             }
             content?.stroke();
         }
