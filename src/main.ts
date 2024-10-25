@@ -16,10 +16,12 @@ canvas.width = 256;
 canvas.height = 256;
 app.append(canvas);
 
+const evtDrawingChange = new Event("drawing-changed");
+
 const content = canvas.getContext("2d");
 const mouse = {active: false, x:0, y: 0}
 
-const lines: number[] = [];
+let lines;
 let currentLine;
 
 
@@ -31,6 +33,7 @@ canvas.addEventListener("mousedown", (newLoc) => {
     currentLine.push({x: mouse.x, y: mouse.y});
 
     lines.push(currentLine);
+    dispatchEvent(evtDrawingChange);
 
 
 })
@@ -46,12 +49,23 @@ canvas.addEventListener("mousemove", (newLoc) => {
         mouse.y = newLoc.offsetY;
         currentLine.push({ x: mouse.x, y: mouse.y });
         };
-
+        dispatchEvent(evtDrawingChange);
     }
 );
 
 canvas.addEventListener("drawing-changed", (newLoc) => {
-
+    content?.clearRect(0, 0, canvas.width, canvas.height);
+    for (const line of lines){
+        if(line.length > 1){
+            content?.beginPath();
+            const {x, y} = line[0];
+            content?.moveTo(x, y);
+            for( const{x, y} of line){
+                content?.lineTo(x, y);
+            }
+            content?.stroke();
+        }
+    }
 })
 
 const clear = document.createElement("button");
