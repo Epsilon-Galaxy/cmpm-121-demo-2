@@ -17,6 +17,7 @@ canvas.height = 256;
 app.append(canvas);
 
 
+const evtCursorChanged = new Event("cursor-changed");
 const evtThicknessChanged = new Event("thickness-changed");
 const evtDrawingChange = new Event("drawing-changed");  
 const ctx = canvas.getContext("2d");
@@ -28,9 +29,35 @@ const thick: number = 10;
 
 let currentThickness = thin;
 
+interface cursorCommand {
+    x: number,
+    y: number,
+    newPosition: (point: {x: number; y: number}) => void;
+    display: (ctx: CanvasRenderingContext2D) => void,
+}
+
+function createCursor(): cursorCommand{
+    return {
+        x: 0,
+        y: 0,
+
+        newPosition(point: {x: number; y: number}): void{
+            this.x = point.x;
+            this.y = point.y;
+        },
+
+        display(ctx: CanvasRenderingContext2D): void{
+            ctx.font = "32px monospace";
+            ctx.fillText("*", this.x - 8, this.y +16);
+        }
+
+    }
+
+}
+
 interface lineInterface {
     pointList: Array<{x: number; y: number}>,
-    thickness: number;
+    thickness: number,
     display: (ctx: CanvasRenderingContext2D) => void,
     drag: (point: {x: number; y: number}) => void
 }
@@ -58,6 +85,8 @@ function createLine(): lineInterface {
         }
     }
 }
+
+let currentCursor: cursorCommand | null  = null;
 
 const commandList: lineInterface[] = [];
 const redoList: lineInterface[] = [];
@@ -95,6 +124,10 @@ canvas.addEventListener("drawing-changed", () => {
     for(const lineIn of commandList){
         lineIn.display(ctx!);
     }
+
+})
+
+canvas.addEventListener("cursor-changed", () => {
 
 })
 
