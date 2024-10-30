@@ -16,13 +16,21 @@ canvas.width = 256;
 canvas.height = 256;
 app.append(canvas);
 
-const evtDrawingChange = new Event("drawing-changed");
 
+const evtThicknessChanged = new Event("thickness-changed");
+const evtDrawingChange = new Event("drawing-changed");  
 const ctx = canvas.getContext("2d");
 const mouse = {active: false, x:0, y: 0}
 
+let thicknessChanged = false;
+const thin: number = 1;
+const thick: number = 10;
+
+let currentThickness = thin;
+
 interface lineInterface {
     pointList: Array<{x: number; y: number}>,
+    thickness: number;
     display: (ctx: CanvasRenderingContext2D) => void,
     drag: (point: {x: number; y: number}) => void
 }
@@ -31,6 +39,7 @@ function createLine(): lineInterface {
     return {
         pointList: [],
         
+        thickness: 10,
         drag(point: {x: number; y:number}): void{
             this.pointList.push(point);
         },
@@ -43,6 +52,7 @@ function createLine(): lineInterface {
                 for(const {x, y } of this.pointList){
                     ctx.lineTo(x, y);
                 }
+                ctx.lineWidth = this.thickness;
                 ctx.stroke();
             }
         }
@@ -56,6 +66,8 @@ let lineObject: lineInterface | null = null;
 
 canvas.addEventListener("mousedown", (newLoc) => {
     lineObject = createLine();
+    canvas.dispatchEvent(evtThicknessChanged);
+    lineObject.thickness = currentThickness;
     lineObject.drag({x: newLoc.offsetX, y: newLoc.offsetY});
     commandList.push(lineObject);
     mouse.active = true;
@@ -84,6 +96,36 @@ canvas.addEventListener("drawing-changed", () => {
         lineIn.display(ctx!);
     }
 
+})
+
+canvas.addEventListener("thickness-changed", () =>{
+    if(thicknessChanged){
+        if(currentThickness == thin){
+            currentThickness = thick;
+        }
+        else{
+            currentThickness = thin;
+        }
+        thicknessChanged = false;
+    }
+})
+
+const thinButton = document.createElement("button");
+thinButton.innerHTML = "Thin Marker";
+app.append(thinButton);
+
+thinButton.addEventListener("click", () => {
+    console.log("Thin Marker Selected");
+    thicknessChanged = true;
+})
+
+const thickButton = document.createElement("button");
+thickButton.innerHTML = "Thick Marker";
+app.append(thickButton);
+
+thickButton.addEventListener("click", () =>{
+    console.log("Thick Marker Selected");
+    thicknessChanged = true;
 })
 
 const undoButton = document.createElement("button");
