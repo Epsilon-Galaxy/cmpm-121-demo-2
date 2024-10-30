@@ -18,22 +18,48 @@ app.append(canvas);
 
 const evtDrawingChange = new Event("drawing-changed");
 
-const content = canvas.getContext("2d");
+const ctx = canvas.getContext("2d");
 const mouse = {active: false, x:0, y: 0}
 
-const lines: Array<Array<{x: number; y: number}>> = [];
-const redoList: Array<Array<{x: number; y: number}>> = [];
+interface lineInterface {
+    pointList: Array<{x: number; y: number}>,
+    display: (ctx: CanvasRenderingContext2D) => void,
+    drag: (point: {x: number; y: number}) => void
+}
+
+function createLine(): lineInterface {
+    return {
+        pointList: [],
+        
+        drag(point: {x: number; y:number}): void{
+            this.pointList.push(point);
+        },
+
+        display(ctx: CanvasRenderingContext2D) {
+            if(this.pointList.length != 0){
+                ctx.beginPath();
+                const { x, y} = this.pointList[0];
+                ctx.moveTo(x, y);
+                for(const {x, y } of this.pointList){
+                    ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+        }
+    }
+}
+
+const commandList: lineInterface[] = [];
+const redoList: lineInterface[] = [];
+let lineObject: lineInterface | null = null;
 
 
 canvas.addEventListener("mousedown", (newLoc) => {
+    lineObject = createLine();
+    lineObject.drag({x: newLoc.offsetX, y: newLoc.offsetY});
+    commandList.push(lineObject);
     mouse.active = true;
-    mouse.x = newLoc.offsetX;
-    mouse.y = newLoc.offsetY;
-
-    
-
-    lines.push([{x: mouse.x, y: mouse.y}]);
-
+    canvas.dispatchEvent(evtDrawingChange);
 
 })
 
@@ -43,28 +69,21 @@ canvas.addEventListener("mouseup", (newLoc) => {
 
 canvas.addEventListener("mousemove", (newLoc) => {
     if(mouse.active == true){
-        lines[lines.length - 1].push({x: newLoc.offsetX, y: newLoc.offsetY});
+        lineObject?.drag({x: newLoc.offsetX, y: newLoc.offsetY});
 
         canvas.dispatchEvent(evtDrawingChange); 
-        mouse.x = newLoc.offsetX;
-        mouse.y = newLoc.offsetY;
         
         };
     }
 );
 
-canvas.addEventListener("drawing-changed", (newLoc) => {
-    content?.clearRect(0, 0, canvas.width, canvas.height);
-    for (const line of lines){
-        if(line.length > 1){
-            content?.beginPath();
-            content?.moveTo(line[0].x, line[0].y);
-            for(const point of line){
-                content?.lineTo(point.x, point.y);
-            }
-            content?.stroke();
-        }
+canvas.addEventListener("drawing-changed", () => {
+    console.log("Caught drawing-changed event");
+    ctx?.clearRect(0,0, canvas.width, canvas.height);
+    for(const lineIn of commandList){
+        lineIn.display(ctx!);
     }
+
 })
 
 const undoButton = document.createElement("button");
@@ -72,14 +91,18 @@ undoButton.innerHTML = "Undo";
 app.append(undoButton);
 
 undoButton.addEventListener("click", () => {
-    if(lines.length != 0){
-        const temp = lines.pop();
+    console.log(commandList.length);
+    if(commandList.length != 0){
+        const temp = commandList.pop();
+        console.log(temp?.pointList);
+        console.log("Deleting command");
         if(temp){
             redoList.push(temp);
         }
 
-        canvas.dispatchEvent(evtDrawingChange);
+
     }
+    canvas.dispatchEvent(evtDrawingChange);
 
 })
 
@@ -91,7 +114,7 @@ redoButton.addEventListener("click", () => {
     if(redoList.length != 0){
         const temp = redoList.pop();
         if(temp){
-            lines.push(temp);
+            commandList.push(temp);
         }
         canvas.dispatchEvent(evtDrawingChange);
     }
@@ -102,13 +125,22 @@ clear.innerHTML = "Clear";
 app.append(clear);
 
 clear.addEventListener("click", () => {
-    content?.clearRect(0,0, canvas.width, canvas.height);
-    for(const line of lines){
-        lines.pop();
+    ctx?.clearRect(0,0, canvas.width, canvas.height);
+    for(const line of commandList){
+        commandList.pop();
     }
     for(const line of redoList){
         redoList.pop();
     }
+    while(commandList.length > 0){
+        commandList.pop();
+    }
+    while(redoList.length > 0){
+        redoList.pop();
+    }
 });
+
+
+
 
 
