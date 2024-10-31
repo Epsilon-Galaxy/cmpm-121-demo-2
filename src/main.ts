@@ -92,6 +92,11 @@ const commandList: lineInterface[] = [];
 const redoList: lineInterface[] = [];
 let lineObject: lineInterface | null = null;
 
+canvas.addEventListener("mouseenter", (e) => {
+    currentCursor = createCursor();
+    currentCursor.newPosition({x: e.offsetX, y: e.offsetY});
+    canvas.dispatchEvent(evtCursorChanged);
+})
 
 canvas.addEventListener("mousedown", (newLoc) => {
     lineObject = createLine();
@@ -106,16 +111,23 @@ canvas.addEventListener("mousedown", (newLoc) => {
 
 canvas.addEventListener("mouseup", (newLoc) => {
     mouse.active = false;
+    currentCursor?.newPosition({x: newLoc.offsetX, y: newLoc.offsetY});
+    canvas.dispatchEvent(evtCursorChanged);
 })
 
 canvas.addEventListener("mousemove", (newLoc) => {
     if(mouse.active == true){
+        currentCursor = null;
         lineObject?.drag({x: newLoc.offsetX, y: newLoc.offsetY});
 
         canvas.dispatchEvent(evtDrawingChange); 
         
-        };
-    }
+        }
+    else{
+        currentCursor?.newPosition({x: newLoc.offsetX, y: newLoc.offsetY});
+        canvas.dispatchEvent(evtCursorChanged);
+    };
+}
 );
 
 canvas.addEventListener("drawing-changed", () => {
@@ -128,7 +140,8 @@ canvas.addEventListener("drawing-changed", () => {
 })
 
 canvas.addEventListener("cursor-changed", () => {
-
+    canvas.dispatchEvent(evtDrawingChange);
+    currentCursor?.display(ctx!);
 })
 
 canvas.addEventListener("thickness-changed", () =>{
