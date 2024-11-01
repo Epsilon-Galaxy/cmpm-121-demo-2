@@ -98,6 +98,12 @@ canvas.addEventListener("mouseenter", (e) => {
     canvas.dispatchEvent(evtCursorChanged);
 })
 
+canvas.addEventListener("mouseleave", (e) =>{
+    currentCursor = null;
+    canvas.dispatchEvent(evtCursorChanged);
+})
+
+
 canvas.addEventListener("mousedown", (newLoc) => {
     lineObject = createLine();
     canvas.dispatchEvent(evtThicknessChanged);
@@ -111,6 +117,7 @@ canvas.addEventListener("mousedown", (newLoc) => {
 
 canvas.addEventListener("mouseup", (newLoc) => {
     mouse.active = false;
+    currentCursor = createCursor();
     currentCursor?.newPosition({x: newLoc.offsetX, y: newLoc.offsetY});
     canvas.dispatchEvent(evtCursorChanged);
 })
