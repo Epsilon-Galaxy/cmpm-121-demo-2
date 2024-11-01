@@ -18,12 +18,14 @@ app.append(canvas);
 
 
 const evtCursorChanged = new Event("cursor-changed");
-const evtThicknessChanged = new Event("thickness-changed");
+// const evtThicknessChanged = new Event("thickness-changed");
 const evtDrawingChange = new Event("drawing-changed");  
 const ctx = canvas.getContext("2d");
 const mouse = {active: false, x:0, y: 0}
 
-let thicknessChanged = false;
+let currentEmoji = "*";
+let stickerBrush = false;
+// let thicknessChanged = false;
 const thin: number = 1;
 const thick: number = 10;
 
@@ -32,6 +34,7 @@ let currentThickness = thin;
 interface cursorCommand {
     x: number,
     y: number,
+    cursor: string,
     newPosition: (point: {x: number; y: number}) => void;
     display: (ctx: CanvasRenderingContext2D) => void,
 }
@@ -40,7 +43,7 @@ function createCursor(): cursorCommand{
     return {
         x: 0,
         y: 0,
-
+        cursor: "*",
         newPosition(point: {x: number; y: number}): void{
             this.x = point.x;
             this.y = point.y;
@@ -48,12 +51,13 @@ function createCursor(): cursorCommand{
 
         display(ctx: CanvasRenderingContext2D): void{
             ctx.font = "32px monospace";
-            ctx.fillText("*", this.x - 8, this.y +16);
+            ctx.fillText(this.cursor, this.x - 8, this.y +16);
         }
 
     }
 
 }
+
 
 interface lineInterface {
     pointList: Array<{x: number; y: number}>,
@@ -94,19 +98,22 @@ let lineObject: lineInterface | null = null;
 
 canvas.addEventListener("mouseenter", (e) => {
     currentCursor = createCursor();
+    currentCursor.cursor = currentEmoji;
     currentCursor.newPosition({x: e.offsetX, y: e.offsetY});
+    canvas.style.cursor = "none";
     canvas.dispatchEvent(evtCursorChanged);
 })
 
 canvas.addEventListener("mouseleave", (e) =>{
     currentCursor = null;
+    canvas.style.cursor = "default";
     canvas.dispatchEvent(evtCursorChanged);
 })
 
 
 canvas.addEventListener("mousedown", (newLoc) => {
     lineObject = createLine();
-    canvas.dispatchEvent(evtThicknessChanged);
+    // canvas.dispatchEvent(evtThicknessChanged);
     lineObject.thickness = currentThickness;
     lineObject.drag({x: newLoc.offsetX, y: newLoc.offsetY});
     commandList.push(lineObject);
@@ -118,6 +125,7 @@ canvas.addEventListener("mousedown", (newLoc) => {
 canvas.addEventListener("mouseup", (newLoc) => {
     mouse.active = false;
     currentCursor = createCursor();
+    currentCursor.cursor = currentEmoji;
     currentCursor?.newPosition({x: newLoc.offsetX, y: newLoc.offsetY});
     canvas.dispatchEvent(evtCursorChanged);
 })
@@ -151,16 +159,40 @@ canvas.addEventListener("cursor-changed", () => {
     currentCursor?.display(ctx!);
 })
 
-canvas.addEventListener("thickness-changed", () =>{
-    if(thicknessChanged){
-        if(currentThickness == thin){
-            currentThickness = thick;
-        }
-        else{
-            currentThickness = thin;
-        }
-        thicknessChanged = false;
-    }
+// canvas.addEventListener("thickness-changed", () =>{
+//     if(currentThickness == thin){
+//         currentThickness = thick;
+//     }
+//     else{
+//         currentThickness = thin;
+//     }
+// })
+
+const emojiButton_1 = document.createElement("button");
+emojiButton_1.innerHTML = "😀";
+app.append(emojiButton_1);
+
+emojiButton_1.addEventListener("click", () =>{
+    console.log("😀 Emoji button Selected");
+    currentEmoji = "😀";
+})
+
+const emojiButton_2 = document.createElement("button");
+emojiButton_2.innerHTML = "🤔";
+app.append(emojiButton_2);
+
+emojiButton_2.addEventListener("click", () =>{
+    console.log("🤔 Emoji button Selected");
+    currentEmoji = "🤔";
+})
+
+const emojiButton_3 = document.createElement("button");
+emojiButton_3.innerHTML = "🍣";
+app.append(emojiButton_3);
+
+emojiButton_3.addEventListener("click", () =>{
+    console.log("🍣 Emoji button Selected");
+    currentEmoji = "🍣";
 })
 
 const thinButton = document.createElement("button");
@@ -169,7 +201,8 @@ app.append(thinButton);
 
 thinButton.addEventListener("click", () => {
     console.log("Thin Marker Selected");
-    thicknessChanged = true;
+    currentEmoji = "*";
+    currentThickness = thin;
 })
 
 const thickButton = document.createElement("button");
@@ -178,7 +211,8 @@ app.append(thickButton);
 
 thickButton.addEventListener("click", () =>{
     console.log("Thick Marker Selected");
-    thicknessChanged = true;
+    currentEmoji = "*";
+    currentThickness = thick;
 })
 
 const undoButton = document.createElement("button");
