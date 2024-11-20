@@ -3,7 +3,6 @@ import "./style.css";
 // Application setup
 const APP_NAME = "DEMO 2 TITLE";
 const app: HTMLDivElement = document.querySelector<HTMLDivElement>("#app")!;
-app.innerHTML = APP_NAME;
 document.title = APP_NAME;
 
 const head = document.createElement("h1");
@@ -50,7 +49,7 @@ function createCursor(): CursorCommand {
     display(ctx: CanvasRenderingContext2D): void {
       ctx.font = "32px monospace";
       ctx.fillText(this.cursor, this.x - 8, this.y + 16);
-    }
+    },
   };
 }
 
@@ -81,7 +80,7 @@ function createLine(): LineInterface {
         ctx.lineWidth = this.thickness;
         ctx.stroke();
       }
-    }
+    },
   };
 }
 
@@ -156,106 +155,99 @@ canvas.addEventListener("cursor-changed", () => {
   currentCursor?.display(ctx!);
 });
 
+/*  Helper functions to add buttons to the UI  */
+function createButton(text: string, callback: () => void): HTMLButtonElement {
+  const tmpButton = document.createElement("button");
+  tmpButton.innerHTML = text;
+  tmpButton.addEventListener("click", callback);
+  return tmpButton;
+}
+
+function groupingButtons(buttons: HTMLButtonElement[]): HTMLDivElement {
+  const tmpGroup = document.createElement("div");
+  tmpGroup.classList.add("button-group");
+  buttons.forEach((button) => tmpGroup.append(button));
+  app.appendChild(tmpGroup);
+  return tmpGroup;
+}
+
+function addToGroup(group: HTMLDivElement, button: HTMLButtonElement): void {
+  group.appendChild(button);
+}
+
 // UI controls for brush and command management
-const thinButton = document.createElement("button");
-thinButton.innerHTML = "Thin Marker";
-app.append(thinButton);
-
-thinButton.addEventListener("click", () => {
-  stickerBrush = false;
-  currentEmoji = "*";
-  currentThickness = thin;
-});
-
-const thickButton = document.createElement("button");
-thickButton.innerHTML = "Thick Marker";
-app.append(thickButton);
-
-thickButton.addEventListener("click", () => {
-  stickerBrush = false;
-  currentEmoji = "*";
-  currentThickness = thick;
-});
-
-const undoButton = document.createElement("button");
-undoButton.innerHTML = "Undo";
-app.append(undoButton);
-
-undoButton.addEventListener("click", () => {
-  if (commandList.length != 0) {
-    const temp = commandList.pop();
-    if (temp) {
-      redoList.push(temp);
-    }
-  }
-  canvas.dispatchEvent(evtDrawingChange);
-});
-
-const redoButton = document.createElement("button");
-redoButton.innerHTML = "Redo";
-app.append(redoButton);
-
-redoButton.addEventListener("click", () => {
-  if (redoList.length != 0) {
-    const temp = redoList.pop();
-    if (temp) {
-      commandList.push(temp);
+/* Create buttons grouping for undo, redo, and clear  */
+groupingButtons([
+  createButton("Undo", () => {
+    if (commandList.length != 0) {
+      const temp = commandList.pop();
+      if (temp) {
+        redoList.push(temp);
+      }
     }
     canvas.dispatchEvent(evtDrawingChange);
+  }),
+  createButton("Redo", () => {
+    if (redoList.length != 0) {
+      const temp = redoList.pop();
+      if (temp) {
+        commandList.push(temp);
+      }
+      canvas.dispatchEvent(evtDrawingChange);
+    }
+  }),
+  createButton("Clear", () => {
+    ctx?.clearRect(0, 0, canvas.width, canvas.height);
+    commandList.length = 0;
+    redoList.length = 0;
+  }),
+]);
+
+/* Create buttons grouping for brush thickness */
+groupingButtons([
+  createButton("Thin Marker", () => {
+    stickerBrush = false;
+    currentEmoji = "*";
+    currentThickness = thin;
+  }),
+  createButton("Thick Marker", () => {
+    stickerBrush = false;
+    currentEmoji = "*";
+    currentThickness = thick;
+  }),
+]);
+
+// UI buttons to select emoji brushes
+/* Create buttons grouping for emoji stickers */
+groupingButtons([
+  createButton("😀", () => {
+    stickerBrush = true;
+    currentEmoji = "😀";
+  }),
+  createButton("🤔", () => {
+    stickerBrush = true;
+    currentEmoji = "🤔";
+  }),
+  createButton("🍣", () => {
+    stickerBrush = true;
+    currentEmoji = "🍣";
+  }),
+]);
+
+// Button to create a custom emoji sticker
+/* Create buttons grouping for custom emoji stickers */
+const customEmojiGroup = groupingButtons([]);
+const createStickerButton = createButton("Create Sticker", () => {
+  const newSticker = String(prompt("What is the new Emoji for the sticker?"));
+  if (newSticker && newSticker.trim() !== "") {
+    const newEmojiButton = createButton(newSticker, () => {
+      stickerBrush = true;
+      currentEmoji = newSticker;
+    });
+    addToGroup(customEmojiGroup, newEmojiButton);
+  } else {
+    alert("Error: empty string.");
   }
 });
 
-const clearButton = document.createElement("button");
-clearButton.innerHTML = "Clear";
-app.append(clearButton);
-
-clearButton.addEventListener("click", () => {
-  ctx?.clearRect(0, 0, canvas.width, canvas.height);
-  commandList.length = 0;
-  redoList.length = 0;
-});
-
-// UI buttons to select emoji brushes
-const emojiButton1 = document.createElement("button");
-emojiButton1.innerHTML = "😀";
-app.append(emojiButton1);
-
-emojiButton1.addEventListener("click", () => {
-  stickerBrush = true;
-  currentEmoji = "😀";
-});
-
-const emojiButton2 = document.createElement("button");
-emojiButton2.innerHTML = "🤔";
-app.append(emojiButton2);
-
-emojiButton2.addEventListener("click", () => {
-  stickerBrush = true;
-  currentEmoji = "🤔";
-});
-
-const emojiButton3 = document.createElement("button");
-emojiButton3.innerHTML = "🍣";
-app.append(emojiButton3);
-
-emojiButton3.addEventListener("click", () => {
-  stickerBrush = true;
-  currentEmoji = "🍣";
-});
-
-// Button to create a custom emoji sticker
-const createStickerButton = document.createElement("button");
-createStickerButton.innerHTML = "Create Sticker";
-app.append(createStickerButton);
-
-createStickerButton.addEventListener("click", () => {
-  const newSticker = String(prompt("What is the new Emoji for the sticker?"));
-  const newEmojiButton = document.createElement("button");
-  newEmojiButton.innerHTML = newSticker;
-  app.append(newEmojiButton);
-
-  newEmojiButton.addEventListener("click", () => {
-    stickerBrush = true;
-    currentEmoji = newSticker;
-  });
-});
+app.appendChild(createStickerButton);
