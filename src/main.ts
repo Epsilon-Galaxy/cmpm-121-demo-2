@@ -1,10 +1,10 @@
 import "./style.css";
 
+// Application setup
 const APP_NAME = "DEMO 2 TITLE";
 const app: HTMLDivElement = document.querySelector<HTMLDivElement>("#app")!;
 app.innerHTML = APP_NAME;
 document.title = APP_NAME;
-"use strict";
 
 const head = document.createElement("h1");
 head.innerHTML = APP_NAME;
@@ -23,11 +23,12 @@ const mouse = { active: false, x: 0, y: 0 };
 let currentEmoji = "*";
 let stickerBrush = false;
 
+// Brush thickness options
 const thin: number = 1;
 const thick: number = 10;
-
 let currentThickness = thin;
 
+// Interface defining a cursor command
 interface CursorCommand {
   x: number;
   y: number;
@@ -36,6 +37,7 @@ interface CursorCommand {
   display: (ctx: CanvasRenderingContext2D) => void;
 }
 
+// Create a new cursor object
 function createCursor(): CursorCommand {
   return {
     x: 0,
@@ -52,6 +54,7 @@ function createCursor(): CursorCommand {
   };
 }
 
+// Interface for line drawing functionality
 interface LineInterface {
   pointList: Array<{ x: number; y: number }>;
   thickness: number;
@@ -59,6 +62,7 @@ interface LineInterface {
   drag: (point: { x: number; y: number }) => void;
 }
 
+// Create a new line object
 function createLine(): LineInterface {
   return {
     pointList: [],
@@ -81,13 +85,14 @@ function createLine(): LineInterface {
   };
 }
 
+// State and command lists
 let currentCursor: CursorCommand | null = null;
-
 const cursorCommandList: CursorCommand[] = [];
 const commandList: LineInterface[] = [];
 const redoList: LineInterface[] = [];
 let lineObject: LineInterface | null = null;
 
+// Event listeners
 canvas.addEventListener("mouseenter", (e) => {
   currentCursor = createCursor();
   currentCursor.cursor = currentEmoji;
@@ -140,6 +145,7 @@ canvas.addEventListener("mousemove", (newLoc) => {
 });
 
 canvas.addEventListener("drawing-changed", () => {
+  // Redraw the canvas with the current lines and stickers
   ctx?.clearRect(0, 0, canvas.width, canvas.height);
   commandList.forEach((line) => line.display(ctx!));
   cursorCommandList.forEach((line) => line.display(ctx!));
@@ -150,6 +156,7 @@ canvas.addEventListener("cursor-changed", () => {
   currentCursor?.display(ctx!);
 });
 
+// UI controls for brush and command management
 const thinButton = document.createElement("button");
 thinButton.innerHTML = "Thin Marker";
 app.append(thinButton);
@@ -208,6 +215,7 @@ clearButton.addEventListener("click", () => {
   redoList.length = 0;
 });
 
+// UI buttons to select emoji brushes
 const emojiButton1 = document.createElement("button");
 emojiButton1.innerHTML = "😀";
 app.append(emojiButton1);
@@ -235,6 +243,7 @@ emojiButton3.addEventListener("click", () => {
   currentEmoji = "🍣";
 });
 
+// Button to create a custom emoji sticker
 const createStickerButton = document.createElement("button");
 createStickerButton.innerHTML = "Create Sticker";
 app.append(createStickerButton);
