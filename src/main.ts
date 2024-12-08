@@ -251,3 +251,29 @@ const createStickerButton = createButton("Create Sticker", () => {
 });
 
 app.appendChild(createStickerButton);
+
+const exportButton = createButton("Export to PNG", () => {
+  const canvasScaled = document.createElement("canvas");
+  canvasScaled.width = canvas.width * 4;
+  canvasScaled.height = canvas.height * 4;
+  const sCTX = canvasScaled.getContext("2d");
+
+  if(sCTX){
+    sCTX.scale(4,4);
+
+    for(const cmd of commandList){
+      cmd.display(sCTX);
+    }
+    for(const cmd of cursorCommandList){
+      cmd.display(sCTX);
+    }
+    
+
+    const achor = document.createElement("a");
+    achor.href = canvasScaled.toDataURL("image/png");
+    achor.download = "pictureDownload.png";
+    achor.click();
+  }
+})
+
+app.append(exportButton);
