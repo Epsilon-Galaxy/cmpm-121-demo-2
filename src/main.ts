@@ -20,6 +20,7 @@ const ctx = canvas.getContext("2d");
 const mouse = { active: false, x: 0, y: 0 };
 
 let currentEmoji = "*";
+let currentColor = "white";
 let stickerBrush = false;
 
 // Brush thickness options
@@ -48,6 +49,7 @@ function createCursor(): CursorCommand {
     },
     display(ctx: CanvasRenderingContext2D): void {
       ctx.font = "32px monospace";
+      
       ctx.fillText(this.cursor, this.x - 8, this.y + 16);
     },
   };
@@ -57,6 +59,7 @@ function createCursor(): CursorCommand {
 interface LineInterface {
   pointList: Array<{ x: number; y: number }>;
   thickness: number;
+  color: string,
   display: (ctx: CanvasRenderingContext2D) => void;
   drag: (point: { x: number; y: number }) => void;
 }
@@ -66,6 +69,7 @@ function createLine(): LineInterface {
   return {
     pointList: [],
     thickness: 10,
+    color: "white",
     drag(point: { x: number; y: number }): void {
       this.pointList.push(point);
     },
@@ -78,6 +82,7 @@ function createLine(): LineInterface {
           ctx.lineTo(x, y);
         }
         ctx.lineWidth = this.thickness;
+        ctx.strokeStyle = this.color;
         ctx.stroke();
       }
     },
@@ -115,6 +120,7 @@ canvas.addEventListener("mousedown", (newLoc) => {
   } else {
     lineObject = createLine();
     lineObject.thickness = currentThickness;
+    lineObject.color = currentColor;
     lineObject.drag({ x: newLoc.offsetX, y: newLoc.offsetY });
     commandList.push(lineObject);
   }
@@ -216,6 +222,28 @@ groupingButtons([
     currentThickness = thick;
   }),
 ]);
+
+//Buttons to change color of marker
+groupingButtons([
+  createButton("Red", () => {
+    currentColor = "red";
+  }),
+  createButton("Orange", () => {
+    currentColor = "orange";
+  }),
+  createButton("Yellow", () => {
+    currentColor = "Yellow";
+  }),
+  createButton("Blue", () => {
+    currentColor = "Blue";
+  }),
+  createButton("Indigo", () => {
+    currentColor = "Purple";
+  }),
+  createButton("Violet", () => {
+    currentColor = "Violet";
+  }),
+])
 
 // UI buttons to select emoji brushes
 /* Create buttons grouping for emoji stickers */
